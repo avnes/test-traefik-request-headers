@@ -1,0 +1,91 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scenario-01
+  namespace: traefik-request-demo
+  labels:
+    app: scenario-01
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scenario-01
+  template:
+    metadata:
+      labels:
+        app: scenario-01
+    spec:
+      containers:
+        - name: scenario-01
+          image: mendhak/http-https-echo:18
+          resources:
+            limits:
+              cpu: 100m
+              memory: 100Mi
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scenario-01-svc
+  namespace: traefik-request-demo
+spec:
+  selector:
+    app: scenario-01
+  ports:
+    - protocol: TCP
+      port: 38001
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    traefik.frontend.rule.type: PathPrefixStrip
+  labels:
+    name: scenario-01
+  name: scenario-01-ing
+  namespace: traefik-request-demo
+spec:
+  rules:
+    - http:
+        paths:
+          - backend:
+              service:
+                name: scenario-01-svc
+                port:
+                  number: 38001
+            path: /web01
+            pathType: Prefix
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: scenario-01-mw
+  namespace: traefik-request-demo
+spec:
+  stripPrefix:
+    prefixes:
+      - /web01
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: scenario-01-route
+  namespace: traefik-request-demo
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: "HostRegexp(`{domain:.+}`) && PathPrefix(`/web01`)"
+      middlewares:
+        - name: scenario-01-mw
+      #priority: 1
+      services:
+        - kind: Service
+          name: scenario-01-svc
+          namespace: traefik-request-demo
+          port: 38001
