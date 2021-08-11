@@ -11,7 +11,7 @@ DNS domain will allow wildcards. For example if you have the example.com domain,
 ## Requirements
 
 - Traefik v2 Helm chart is installed with the additional argument: --providers.kubernetescrd.allowCrossNamespace=true
-- Traefiv v1.7 installed in different namespace.
+- Traefik v1.7 installed in different namespace.
 - Load balancer traffic should reach the Traefik v2 instance.
 - A fallback IngressRoute for Traefik v2 to Traefik v1 is setup to catch un-matched traffic, like scenario-01
 
