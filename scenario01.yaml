@@ -58,34 +58,4 @@ spec:
                 port:
                   number: 38001
             path: /web01
-            pathType: Prefix
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: scenario-01-mw
-  namespace: traefik-request-demo
-spec:
-  stripPrefix:
-    prefixes:
-      - /web01
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: IngressRoute
-metadata:
-  name: scenario-01-route
-  namespace: traefik-request-demo
-spec:
-  entryPoints:
-    - web
-  routes:
-    - kind: Rule
-      match: "HostRegexp(`{domain:.+}`) && PathPrefix(`/web01`)"
-      middlewares:
-        - name: scenario-01-mw
-      #priority: 1
-      services:
-        - kind: Service
-          name: scenario-01-svc
-          namespace: traefik-request-demo
-          port: 38001
+            pathType: ImplementationSpecific

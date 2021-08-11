@@ -38,42 +38,21 @@ spec:
     - protocol: TCP
       port: 38002
       targetPort: 8080
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  annotations:
-    traefik.frontend.rule.type: PathPrefixStrip
-  labels:
-    name: scenario-02
-  name: scenario-02-ing
-  namespace: traefik-request-demo
-spec:
-  rules:
-    - http:
-        paths:
-          - backend:
-              service:
-                name: scenario-02-svc
-                port:
-                  number: 38002
-            path: /web02
-            pathType: Prefix
----
-apiVersion: traefik.containo.us/v1alpha1
-kind: Middleware
-metadata:
-  name: scenario-02-mw
-  namespace: traefik-request-demo
-spec:
-  stripPrefix:
-    prefixes:
-      - /web02
+# ---
+# apiVersion: traefik.containo.us/v1alpha1
+# kind: Middleware
+# metadata:
+#   name: scenario-02-mw
+#   namespace: traefik-request-demo
+# spec:
+#   stripPrefix:
+#     prefixes:
+#       - /web02
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: scenario-02-route
+  name: scenario-02
   namespace: traefik-request-demo
 spec:
   entryPoints:
@@ -81,11 +60,15 @@ spec:
   routes:
     - kind: Rule
       match: "HostRegexp(`{domain:.+}`) && PathPrefix(`/web02`)"
-      middlewares:
-        - name: scenario-02-mw
-      #priority: 1
+      priority: 10
+      # middlewares:
+      #   - name: scenario-02-mw
+      #     namespace: traefik-request-demo
       services:
         - kind: Service
           name: scenario-02-svc
           namespace: traefik-request-demo
+          passHostHeader: true
           port: 38002
+          responseForwarding:
+            flushInterval: 1ms
