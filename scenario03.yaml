@@ -1,0 +1,74 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scenario-03
+  namespace: traefik-request-demo
+  labels:
+    app: scenario-03
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scenario-03
+  template:
+    metadata:
+      labels:
+        app: scenario-03
+    spec:
+      containers:
+        - name: scenario-03
+          image: mendhak/http-https-echo:18
+          resources:
+            limits:
+              cpu: 100m
+              memory: 100Mi
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scenario-03-svc
+  namespace: traefik-request-demo
+spec:
+  selector:
+    app: scenario-03
+  ports:
+    - protocol: TCP
+      port: 38003
+      targetPort: 8080
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: scenario-03-mw
+  namespace: traefik-request-demo
+spec:
+  stripPrefix:
+    prefixes:
+      - /web03
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: scenario-03
+  namespace: traefik-request-demo
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: "HostRegexp(`{domain:.+}`) && PathPrefix(`/web03`)"
+      priority: 10
+      middlewares:
+        - name: scenario-03-mw
+          namespace: traefik-request-demo
+      services:
+        - kind: Service
+          name: scenario-03-svc
+          namespace: traefik-request-demo
+          passHostHeader: true
+          port: 38003
+          responseForwarding:
+            flushInterval: 1ms
