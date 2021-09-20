@@ -38,16 +38,6 @@ spec:
     - protocol: TCP
       port: 38002
       targetPort: 8080
-# ---
-# apiVersion: traefik.containo.us/v1alpha1
-# kind: Middleware
-# metadata:
-#   name: scenario-02-mw
-#   namespace: traefik-request-demo
-# spec:
-#   stripPrefix:
-#     prefixes:
-#       - /web02
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
@@ -61,9 +51,6 @@ spec:
     - kind: Rule
       match: "HostRegexp(`{domain:.+}`) && PathPrefix(`/web02`)"
       priority: 10
-      # middlewares:
-      #   - name: scenario-02-mw
-      #     namespace: traefik-request-demo
       services:
         - kind: Service
           name: scenario-02-svc
