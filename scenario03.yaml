@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: scenario-03
-          image: mendhak/http-https-echo:18
+          image: ghcr.io/avnes/pyrhout:latest
           resources:
             limits:
               cpu: 100m
